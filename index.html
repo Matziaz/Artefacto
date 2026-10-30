@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scorecard de madurez de la transformación digital</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--ink:#14213d;--mute:#5b667a;--line:#d9dfe8;--acc:#0b6e8a;--accsoft:#dff0f5;--grid:#cfd6e0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1624;--card:#172033;--ink:#e8edf5;--mute:#9aa6bb;--line:#2a3550;--acc:#4cb8d4;--accsoft:#183a48;--grid:#33405c}}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;line-height:1.45}
+main{max-width:1040px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.5rem;margin:0 0 4px;font-weight:600}
+.sub{color:var(--mute);margin:0 0 20px;max-width:62ch}
+.grid{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;align-items:start}
+@media (max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+label.f{display:block;font-size:.85rem;color:var(--mute);margin-bottom:10px}
+input[type=text]{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit;margin-top:4px}
+.dim{padding:14px 0;border-top:1px solid var(--line)}
+.dim:first-of-type{border-top:0}
+.dim h3{margin:0;font-size:1rem;font-weight:600;display:flex;justify-content:space-between;gap:8px}
+.dim h3 span{color:var(--mute);font-weight:400;font-size:.85rem}
+.q{margin:2px 0 8px;color:var(--mute);font-size:.9rem}
+.btns{display:flex;gap:6px}
+.btns button{flex:1;min-height:44px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;font:inherit;font-weight:500;cursor:pointer}
+.btns button[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#fff}
+.btns button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.anch{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;font-size:.75rem;color:var(--mute)}
+.anch b{color:var(--ink);font-weight:600}
+.res{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+.score{display:flex;align-items:baseline;gap:12px;margin:4px 0 2px}
+.score .n{font-size:2.6rem;font-weight:600;line-height:1}
+.ring{display:inline-block;padding:3px 12px;border-radius:99px;background:var(--accsoft);color:var(--acc);font-weight:600}
+.desc{color:var(--mute);margin:8px 0 0;font-size:.9rem}
+svg{width:100%;height:auto;display:block;margin:6px auto;max-width:380px}
+.rows{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:8px}
+.rows td{padding:4px 0;border-top:1px solid var(--line)}
+.rows td:last-child{text-align:right}
+.act{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.act button{min-height:44px;padding:0 14px;border-radius:6px;border:1px solid var(--acc);background:var(--acc);color:#fff;font:inherit;font-weight:500;cursor:pointer}
+.act button.sec{background:transparent;color:var(--acc)}
+.note{font-size:.78rem;color:var(--mute);margin-top:10px}
+@media print{.act,.btns{display:none}.res{position:static}}
+</style>
+</head>
+<body>
+<main>
+<h1>Scorecard de madurez de la transformación digital</h1>
+<p class="sub">Califica tu propuesta de 1 (apenas empieza) a 5 (ya es estándar) en las 6 dimensiones. El resultado se actualiza al instante.</p>
+<div class="grid">
+  <section class="card" aria-label="Calificación">
+    <label class="f">Nombre de la propuesta<input type="text" id="nombre" placeholder="Ej. Chatbot de atención a alumnos"></label>
+    <label class="f">Pilar de la Visión 2030 al que contribuye<input type="text" id="pilar" placeholder="Escribe el pilar"></label>
+    <div id="dims"></div>
+  </section>
+  <aside class="card res" aria-live="polite">
+    <div class="score"><span class="n" id="avg">0.00</span><span class="ring" id="ring">Sin calificar</span></div>
+    <p class="desc" id="rdesc">Califica las 6 dimensiones para ubicar la propuesta.</p>
+    <svg id="radar" viewBox="0 0 400 360" role="img" aria-label="Gráfica de radar de madurez"></svg>
+    <table class="rows" id="rows"></table>
+    <div class="act">
+      <button id="copy">Copiar resumen</button>
+      <button class="sec" id="reset">Reiniciar</button>
+    </div>
+    <p class="note">Los pesos son ilustrativos y se validan con la Dirección. Anillo según el promedio ponderado: Explorar 1.0 a 1.9, Pilotear 2.0 a 2.9, Escalar 3.0 a 3.9, Consolidar 4.0 a 5.0.</p>
+  </aside>
+</div>
+</main>
+<script>
+var D=[
+["Adopción","¿La gente realmente lo usa?",20,"Nadie lo usa aún","Lo usa parte del público objetivo, de forma recurrente","Casi todos lo usan como forma normal de trabajo"],
+["Impacto al negocio","¿Da resultados medibles?",25,"No hay resultados medidos","Mejoras parciales frente al caso de negocio","Cumple o supera el caso de negocio"],
+["Datos e IA","¿Usa datos, automatización o IA para operar y decidir?",15,"Todo es manual","Hay reportes y algo de automatización","Decisiones y operación apoyadas en datos o IA"],
+["Gobernanza","¿Está bien dirigida y controlada?",15,"Sin dueño ni roadmap","Dueño, roadmap y riesgos definidos","Gobierno estable y riesgos bajo control"],
+["Escalabilidad","¿Puede crecer sin rehacerse?",10,"Solo funciona en un caso puntual","Se extiende con esfuerzo moderado","Opera en varias áreas o campus"],
+["Satisfacción del usuario","¿A los usuarios les sirve y les gusta?",15,"No hay retroalimentación","Encuestas con resultados mixtos","Satisfacción alta y sostenida"]];
+var R=[["Explorar","Idea o piloto inicial."],["Pilotear","Piloto con usuarios y primeros resultados."],["Escalar","Uso recurrente, creciendo a más áreas."],["Consolidar","Forma estándar de operar, impacto demostrado."]];
+var S=[0,0,0,0,0,0];
+var box=document.getElementById("dims");
+D.forEach(function(d,i){
+  var w=document.createElement("div");w.className="dim";
+  w.innerHTML='<h3>'+d[0]+'<span>Peso '+d[2]+'%</span></h3><p class="q">'+d[1]+'</p><div class="btns" role="group" aria-label="'+d[0]+'"></div><div class="anch"><div><b>1</b> '+d[3]+'</div><div><b>3</b> '+d[4]+'</div><div><b>5</b> '+d[5]+'</div></div>';
+  var b=w.querySelector(".btns");
+  for(var k=1;k<=5;k++){(function(k){var x=document.createElement("button");x.textContent=k;x.setAttribute("aria-pressed","false");
+    x.onclick=function(){S[i]=(S[i]===k?0:k);render();};b.appendChild(x);})(k);}
+  box.appendChild(w);
+});
+function pt(i,r){var a=-Math.PI/2+i*2*Math.PI/6;return [200+r*Math.cos(a),185+r*Math.sin(a)];}
+function render(){
+  var bs=document.querySelectorAll(".btns");
+  S.forEach(function(v,i){bs[i].querySelectorAll("button").forEach(function(x,k){x.setAttribute("aria-pressed",String(v===k+1));});});
+  var done=S.every(function(v){return v>0;});
+  var avg=0;D.forEach(function(d,i){avg+=S[i]*d[2]/100;});
+  document.getElementById("avg").textContent=done?avg.toFixed(2):"0.00";
+  var idx=avg<2?0:avg<3?1:avg<4?2:3;
+  document.getElementById("ring").textContent=done?R[idx][0]:"Sin calificar";
+  document.getElementById("rdesc").textContent=done?R[idx][1]+" Promedio ponderado de las 6 dimensiones.":"Califica las 6 dimensiones para ubicar la propuesta.";
+  var g='',c='var(--grid)';
+  for(var r=1;r<=5;r++){var p=[];for(var i=0;i<6;i++)p.push(pt(i,r*28).join(","));g+='<polygon points="'+p.join(" ")+'" fill="none" stroke="'+c+'" stroke-width="1"/>';}
+  for(var i=0;i<6;i++){var e=pt(i,140),l=pt(i,160);g+='<line x1="200" y1="185" x2="'+e[0]+'" y2="'+e[1]+'" stroke="'+c+'"/>';
+    var an=l[0]<180?"end":l[0]>220?"start":"middle";
+    g+='<text x="'+l[0]+'" y="'+(l[1]+4)+'" text-anchor="'+an+'" font-size="12" fill="var(--ink)">'+D[i][0].replace("Satisfacción del usuario","Satisfacción").replace("Impacto al negocio","Impacto")+'</text>';}
+  var q=S.map(function(v,i){return pt(i,Math.max(v,0)*28).join(",");}).join(" ");
+  g+='<polygon points="'+q+'" fill="var(--acc)" fill-opacity=".28" stroke="var(--acc)" stroke-width="2.5"/>';
+  S.forEach(function(v,i){if(v){var p=pt(i,v*28);g+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="4" fill="var(--acc)"/>';}});
+  document.getElementById("radar").innerHTML=g;
+  var t='';D.forEach(function(d,i){t+='<tr><td>'+d[0]+'</td><td>'+(S[i]||"-")+' de 5</td><td>'+(S[i]?(S[i]*d[2]/100).toFixed(2):"-")+'</td></tr>';});
+  document.getElementById("rows").innerHTML=t;
+}
+document.getElementById("reset").onclick=function(){S=[0,0,0,0,0,0];render();};
+document.getElementById("copy").onclick=function(){
+  var n=document.getElementById("nombre").value||"Propuesta sin nombre",p=document.getElementById("pilar").value||"sin definir";
+  var avg=0;D.forEach(function(d,i){avg+=S[i]*d[2]/100;});var idx=avg<2?0:avg<3?1:avg<4?2:3;
+  var s=n+"\nPilar: "+p+"\n";D.forEach(function(d,i){s+=d[0]+": "+(S[i]||"-")+"\n";});
+  s+="Promedio ponderado: "+avg.toFixed(2)+" ("+R[idx][0]+")";
+  var b=document.getElementById("copy");
+  try{navigator.clipboard.writeText(s).then(function(){b.textContent="Copiado";setTimeout(function(){b.textContent="Copiar resumen";},1500);});}catch(e){b.textContent="No se pudo copiar";}
+};
+render();
+</script>
+</body>
+</html>
